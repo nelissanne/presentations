@@ -1,0 +1,234 @@
+---
+title: Cox models for survival analysis
+author: Mathilde Donnenfeld
+date: 2018-10-31
+output:
+  revealjs::revealjs_presentation:
+    fig_width: 8
+    fig_height: 6
+    fig_caption: true
+    transition: none
+    css: theme.css
+    highlight: pygments
+    reveal_options:
+      slideNumber: true
+---
+
+<h1 class="title">Introduction</h1>
+
+<!-- Fonts go here to prevent blank slide -->
+<style>
+@import url('https://fonts.googleapis.com/css?family=Merriweather|Open+Sans');
+</style>
+<!-- End fonts -->
+
+## Overview
+
+What is survival analysis?
+What is a Cox model?
+The assumption of proportional hazards
+Modelling
+Conclusions
+What about real life?
+
+---
+
+<h1 class="title">What is survival analysis?</h1>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE
+	, message = FALSE
+	, warning = FALSE
+	# for testing
+	# , cache=TRUE
+)
+```
+
+```{r}
+# uncomment these if you need to install anything
+# install.packages("tidyverse")   # for tidy data
+# install.packages("revealjs")    # for building presentation
+# install.packages("survival")   # for survival analysis
+# install.packages("ggfortify")   # for plotting survival curves
+```
+
+
+```{r}
+library(survival)       # survival analysis
+library(ggfortify)      # plot survival curves
+library(tidyverse)      # tidy everything
+library(glue)           # for string formatting
+theme_set(theme_bw())   # nice theme for plots
+```
+---
+
+### What is survival analysis?
+
+* Trying to analyse the survival time of a set of observations
+
+* For this, we need to define:
+  * Survival (a 'death' event, e.g. actual death, medical condition declared, churn of customer...)
+  * Time to Event (or TTE, i.e. the time for which we observed the individual)
+
+---
+
+### What is survival analysis?
+
+Please meet Gertrude.
+[INSERT PHOTO OF GERTRUDE HERE]
+
+Gertrude is a *Pachira Aquatica*
+
+---
+
+### What is survival analysis?
+
+* Hidden idea: all observations will end up 'dying'
+
+* Either we observe this 'death', in which case we measure the time between the beginning of the observation period and the 'death'
+
+* Or we don't, in which case we measure the time between the beginning of the observation period and today. Those observations are called 'right-censored'.
+
+---
+
+### Quick look at our dataset
+
+```{r, include=TRUE}
+head(df, 10)
+```
+
+
+
+---
+
+### Quick look at our dataset
+
+```{r}
+summary(df$died)
+summary(df$days)
+```
+
+---
+
+### Define a survival object
+
+```{r}
+
+# Using the Surv function:
+
+df$survival <- Surv(time=df$days, event=df$died)
+
+
+```
+
+---
+###Plot the survival curve
+```{r}
+fit_proportional <- survfit(survival ~ species, data = df)
+autoplot(fit_proportional)
+```
+
+---
+
+```{r}
+
+survdiff(survival ~ species,data=df)
+
+```
+---
+
+### What is a Cox model?
+
+* Regression with the hazard function as dependant variable
+
+* h(t) = h0(t) * exp(ß1 x1 +  ß2 x2 + ... + ßn xn)
+
+* Only the baseline hazard function varies with time
+
+---
+
+### The assumption of proportional hazards
+
+```{r}
+fit <- survfit(survival ~ name, data = df)
+autoplot(fit)
+```
+
+---
+### Modelling
+
+In code:
+
+```{r, include=TRUE}
+
+model_full <- coxph(survival ~ name
+      + species
+, data = df)
+```
+
+---  
+
+### Testing assumption of proportional hazards
+
+```{r}
+cox.zph(model_full)
+```
+
+---
+
+### Modelling: simplification of the model
+
+```{r}
+
+model_short <- coxph(survival ~ species
+, data = df)
+
+cox.zph(model_short)
+
+```
+
+---
+
+### Modelling: Model output
+
+```{r}
+summary(model_short)
+```
+
+---
+### Takeaways
+
+* Survival analysis is a powerful tool for analyzing the association of variables with a hazard function
+
+* With great power comes a great assumption
+
+* Congrats to Gertrude (1.5 years and counting!)
+
+---
+### What about real life?
+
+In real life, several issues can come across:
+
+* The proportional hazards assumption is a strong one, and hard to meet.
+
+* This is especially true for large datasets
+
+* It can make sense to randomly select a subsample of your population
+
+---
+
+
+
+## Further reading
+* Walters, *What is a Cox model?*
+    * [link](http://www.bandolier.org.uk/painres/download/whatis/COX_MODEL.pdf)
+* CRAN, *Plotting with survival package*
+    * [link](https://cran.r-project.org/web/packages/ggfortify/vignettes/plot_surv.html)
+* LaMorte, *Comparing survival curves: The log-rank test*
+    * [link](http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/BS704_Survival/BS704_Survival5.html)
+
+
+---
+
+<h1 class="title">Thanks!</h1>
