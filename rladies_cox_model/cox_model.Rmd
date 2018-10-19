@@ -25,6 +25,7 @@ output:
 ## Overview
 
 What is survival analysis?
+Survival curves
 What is a Cox model?
 The assumption of proportional hazards
 Modelling
@@ -123,13 +124,16 @@ df$survival <- Surv(time=df$days, event=df$died)
 ```
 
 ---
-###Plot the survival curve
+### Plot the survival curve
+
 ```{r}
 fit_proportional <- survfit(survival ~ species, data = df)
 autoplot(fit_proportional)
 ```
 
 ---
+
+### Log-rank test for comparing survival curves
 
 ```{r}
 
@@ -197,7 +201,7 @@ summary(model_short)
 ```
 
 ---
-### Takeaways
+### Conclusions
 
 * Survival analysis is a powerful tool for analyzing the association of variables with a hazard function
 
