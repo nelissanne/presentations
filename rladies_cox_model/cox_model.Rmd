@@ -22,66 +22,81 @@ output:
 </style>
 <!-- End fonts -->
 
-## Overview
-
-What is survival analysis?
-Survival curves
-What is a Cox model?
-The assumption of proportional hazards
-Modelling
-Conclusions
-What about real life?
-
----
-
-<h1 class="title">What is survival analysis?</h1>
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
 	echo = FALSE
 	, message = FALSE
 	, warning = FALSE
 	# for testing
-	# , cache=TRUE
+	 , cache=TRUE
 )
 ```
+
+## A use case
+
+```{r, out.width = "800px"}
+knitr::include_graphics("img/folate_header.png")
+```
+
+
+---
+
+## A use case
+
+```{r, out.width = "800px"}
+knitr::include_graphics("img/folate_main_results.png")
+```
+
+---
+
+## Overview
+
+  What is survival analysis?
+  
+  What is a Cox model?
+  
+  The assumption of proportional hazards
+  
+  Modelling
+  
+  Takeaways
+  
+  What about real life?
+
+---
+
+<h1 class="title">What is survival analysis?</h1>
+
 
 ```{r}
 # uncomment these if you need to install anything
 # install.packages("tidyverse")   # for tidy data
 # install.packages("revealjs")    # for building presentation
-# install.packages("survival")   # for survival analysis
+# install.packages("survival")   # for computing survival analysis
+# install.packages("survminer")   # for summarizing visualizing survival analysis
 # install.packages("ggfortify")   # for plotting survival curves
 ```
 
 
 ```{r}
 library(survival)       # survival analysis
+library(survminer)       # survival analysis
 library(ggfortify)      # plot survival curves
 library(tidyverse)      # tidy everything
 library(glue)           # for string formatting
 theme_set(theme_bw())   # nice theme for plots
+source('generate_dataset.R')
 ```
 ---
 
 ### What is survival analysis?
-
-* Trying to analyse the survival time of a set of observations
-
+* Analyzing the survival time of a set of observations
 * For this, we need to define:
-  * Survival (a 'death' event, e.g. actual death, medical condition declared, churn of customer...)
-  * Time to Event (or TTE, i.e. the time for which we observed the individual)
+    * Survival (a 'death' event, e.g. actual death, medical condition declared, churn of customer...)
+    * Time to Observation (or TTO, i.e. the time for which we observed the individual before the event occured OR the time after which the individual was censored)
 
 ---
 
-### What is survival analysis?
-
-Please meet Gertrude.
-[INSERT PHOTO OF GERTRUDE HERE]
-
-Gertrude is a *Pachira Aquatica*
-
----
 
 ### What is survival analysis?
 
@@ -89,13 +104,25 @@ Gertrude is a *Pachira Aquatica*
 
 * Either we observe this 'death', in which case we measure the time between the beginning of the observation period and the 'death'
 
-* Or we don't, in which case we measure the time between the beginning of the observation period and today. Those observations are called 'right-censored'.
+* Or we don't, in which case we measure the time between the beginning of the observation period and its end. Those observations are called 'right-censored'.
+
+---
+
+### What is survival analysis?
+
+Another use case: please meet Gertrude.
+
+```{r, out.width = "300px"}
+knitr::include_graphics("img/gertrude.jpg")
+```
+
+Gertrude is a *Pachira Aquatica*
 
 ---
 
 ### Quick look at our dataset
 
-```{r, include=TRUE}
+```{r}
 head(df, 10)
 ```
 
@@ -105,8 +132,11 @@ head(df, 10)
 
 ### Quick look at our dataset
 
-```{r}
+```{r echo = TRUE}
+# Summary of "died" variable
 summary(df$died)
+
+# Summary of "days" variable
 summary(df$days)
 ```
 
@@ -114,7 +144,9 @@ summary(df$days)
 
 ### Define a survival object
 
-```{r}
+A survival object is composed of the TTO and the event occuring (Y/N)
+
+```{r echo = TRUE}
 
 # Using the Surv function:
 
@@ -124,16 +156,85 @@ df$survival <- Surv(time=df$days, event=df$died)
 ```
 
 ---
-### Plot the survival curve
 
-```{r}
-fit_proportional <- survfit(survival ~ species, data = df)
-autoplot(fit_proportional)
+### The survivor function
+
+* The survivor (or survival) function gives the probability that an observation will survive beyond a given point in time
+
+* Estimating this function for observations grouped by a given variable allows to estimate the hazard ratio of that variable's levels compared to the reference level
+
+---
+
+### Kaplan-Meier estimate of the survivor function
+
+* A series of time intervals is formed so that at least one tto is contained in the interval
+
+* The start of the interval is the time of this (these) tto(s)
+
+```{r out.width = "600px"}
+fit <- survfit(survival ~ 1, data = df)
+
+res.sum <- surv_summary(fit)
+head(res.sum, 10)
 ```
 
 ---
 
-### Log-rank test for comparing survival curves
+### Kaplan-Meier estimate of the survivor function
+
+* The probability of surviving one interval is 1 - (n.event/n.at.risk)
+
+* If a censored survival time occurs at the same time as a death, it is considered to occur right after the death event
+
+```{r out.width = "600px"}
+head(res.sum, 10)
+```
+
+---
+
+### Kaplan-Meier estimate of the survivor function
+
+* The probability of surviving until the end of the n-th interval is the product of all the i-th previous probabilities of surviving, including the n-th
+
+```{r out.width = "600px"}
+head(res.sum, 10)
+```
+
+---
+
+### Plot the survival curve
+
+```{r out.width = "800px"}
+fit_proportional <- survfit(survival ~ species, data = df)
+
+ggsurvplot(fit,
+          pval = TRUE, conf.int = TRUE,
+          risk.table = TRUE, # Add risk table
+          risk.table.col = "strata", # Change risk table color by groups
+          linetype = "strata", # Change line type by groups
+          surv.median.line = "hv" # Specify median survival
+)
+```
+
+---
+
+### Plot the survival curveS
+
+```{r out.width = "800px"}
+fit_proportional <- survfit(survival ~ species, data = df)
+
+ggsurvplot(fit_proportional,
+          pval = TRUE, conf.int = TRUE,
+          risk.table = TRUE, # Add risk table
+          risk.table.col = "strata", # Change risk table color by groups
+          linetype = "strata", # Change line type by groups
+          surv.median.line = "hv" # Specify median survival
+)
+```
+
+---
+
+### The log-rank test
 
 ```{r}
 
@@ -142,29 +243,50 @@ survdiff(survival ~ species,data=df)
 ```
 ---
 
+<h1 class="title">What is a Cox Model?</h1>
+
+---
+
 ### What is a Cox model?
 
 * Regression with the hazard function as dependant variable
 
-* h(t) = h0(t) * exp(ß1 x1 +  ß2 x2 + ... + ßn xn)
+```{r, out.width = "800px"}
+knitr::include_graphics("img/cox_parametrization.png")
+```
 
 * Only the baseline hazard function varies with time
 
 ---
 
+<h1 class="title">The assumption of proportional hazards</h1>
+
+---
+
 ### The assumption of proportional hazards
 
-```{r}
-fit <- survfit(survival ~ name, data = df)
-autoplot(fit)
+```{r, out.width = "500px"}
+fit_unproportional <- survfit(survival ~ name, data = df)
+ggsurvplot(fit_unproportional,
+          pval = TRUE, conf.int = TRUE,
+          risk.table = TRUE, # Add risk table
+          risk.table.col = "strata", # Change risk table color by groups
+          linetype = "strata", # Change line type by groups
+          surv.median.line = "hv" # Specify median survival
+)
 ```
 
 ---
+
+<h1 class="title">Modelling</h1>
+
+---
+
 ### Modelling
 
 In code:
 
-```{r, include=TRUE}
+```{r echo=TRUE}
 
 model_full <- coxph(survival ~ name
       + species
@@ -175,7 +297,7 @@ model_full <- coxph(survival ~ name
 
 ### Testing assumption of proportional hazards
 
-```{r}
+```{r echo=TRUE}
 cox.zph(model_full)
 ```
 
@@ -183,7 +305,9 @@ cox.zph(model_full)
 
 ### Modelling: simplification of the model
 
-```{r}
+We have to take the name variable out. We could also stratify the analysis by name.
+
+```{r echo=TRUE}
 
 model_short <- coxph(survival ~ species
 , data = df)
@@ -201,15 +325,29 @@ summary(model_short)
 ```
 
 ---
-### Conclusions
+
+### Modelling: Adjustement
+
+**Those coefficients are not interpretable**
+
+```{r}
+summary(model_full)
+```
+
+---
+
+### Takeaways
 
 * Survival analysis is a powerful tool for analyzing the association of variables with a hazard function
+
+* Cox model allows to control for adjustment variables
 
 * With great power comes a great assumption
 
 * Congrats to Gertrude (1.5 years and counting!)
 
 ---
+
 ### What about real life?
 
 In real life, several issues can come across:
@@ -225,6 +363,8 @@ In real life, several issues can come across:
 
 
 ## Further reading
+* Donnenfeld et al., *Prospective association between dietary folate intake and skin cancer risk: Results from the Supplémentation en Vitamines et Minéraux Antioxydants cohort*
+    * [link](https://www.researchgate.net/publication/279990457_Prospective_association_between_dietary_folate_intake_and_skin_cancer_risk_Results_from_the_Supplementation_en_Vitamines_et_Mineraux_Antioxydants_cohort)
 * Walters, *What is a Cox model?*
     * [link](http://www.bandolier.org.uk/painres/download/whatis/COX_MODEL.pdf)
 * CRAN, *Plotting with survival package*
