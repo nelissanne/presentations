@@ -5,7 +5,7 @@ date: 2018-10-31
 output:
   revealjs::revealjs_presentation:
     fig_width: 8
-    fig_height: 6
+    fig_height: 5
     fig_caption: true
     transition: none
     css: theme.css
@@ -28,7 +28,7 @@ knitr::opts_chunk$set(
 	, message = FALSE
 	, warning = FALSE
 	# for testing
-	 , cache=TRUE
+	# , cache=TRUE
 )
 ```
 
@@ -81,7 +81,7 @@ knitr::include_graphics("img/folate_main_results.png")
 ```{r}
 library(survival)       # survival analysis
 library(survminer)       # survival analysis
-library(ggfortify)      # plot survival curves
+#library(ggfortify)      # plot survival curves
 library(tidyverse)      # tidy everything
 library(glue)           # for string formatting
 theme_set(theme_bw())   # nice theme for plots
@@ -122,7 +122,9 @@ Gertrude is a *Pachira Aquatica*
 
 ### Quick look at our dataset
 
-```{r}
+```{r echo=TRUE}
+# df <- yada
+
 head(df, 10)
 ```
 
@@ -182,7 +184,10 @@ head(res.sum, 10)
 
 ### Kaplan-Meier estimate of the survivor function
 
-* The probability of surviving one interval is 1 - (n.event/n.at.risk)
+* The probability of surviving one interval is 
+
+  $$ 1 - \frac{n_{\text{event}}}{n_{\text{at risk}}} $$
+
 
 * If a censored survival time occurs at the same time as a death, it is considered to occur right after the death event
 
@@ -196,6 +201,10 @@ head(res.sum, 10)
 
 * The probability of surviving until the end of the n-th interval is the product of all the i-th previous probabilities of surviving, including the n-th
 
+$$
+P_{Surv}(\text{Int}K) = P_{Surv}(\text{Int}_1) \cdot P_{Surv}(\text{Int}_2) | (\text{Surv}(\text{Int}_1)) \cdot \dotsc \cdot P_{Surv}(\text{Int}_K) | (\text{Surv}(\text{Int}_{K-1})
+$$
+
 ```{r out.width = "600px"}
 head(res.sum, 10)
 ```
@@ -205,7 +214,6 @@ head(res.sum, 10)
 ### Plot the survival curve
 
 ```{r out.width = "800px"}
-fit_proportional <- survfit(survival ~ species, data = df)
 
 ggsurvplot(fit,
           pval = TRUE, conf.int = TRUE,
@@ -251,9 +259,7 @@ survdiff(survival ~ species,data=df)
 
 * Regression with the hazard function as dependant variable
 
-```{r, out.width = "800px"}
-knitr::include_graphics("img/cox_parametrization.png")
-```
+$$ h_i(t) = h_0(t) \cdot \text{exp}(\beta_1 x_{i1} + \dotsc + \beta_k x_{ik}) $$
 
 * Only the baseline hazard function varies with time
 
