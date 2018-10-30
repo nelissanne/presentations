@@ -88,7 +88,6 @@ library(survminer)       # survival analysis
 #library(ggfortify)      # plot survival curves
 library(tidyverse)      # tidy everything
 library(glue)           # for string formatting
-library(kableExtra)
 theme_set(theme_bw())   # nice theme for plots
 ```
 ---
@@ -228,6 +227,8 @@ head(d1, 10)
 
   $$ 1 - \frac{n_{\text{event}}}{n_{\text{at risk}}} $$
 
+* The probability of dying in one interval if survived until then is the hazard
+
 ---
 
 ### Kaplan-Meier estimate of the survivor function
@@ -282,7 +283,6 @@ head(d, 10)
 
 ```{r}
 #ggsurvplot, from the survminer package
-
 ggsurvplot(fit,
           pval = TRUE, conf.int = TRUE,
           risk.table = TRUE, # Add risk table
@@ -347,7 +347,7 @@ survdiff(survival ~ species,data=df)
 
 ### What is a Cox model?
 
-* Regression with the survivor function as dependant variable
+* Linear regression with the log of the hazard function as dependant variable
 
 * Estimates coefficients accounting for other independant variables
 
@@ -382,7 +382,9 @@ ggsurvplot(fit_unproportional,
 
 * The coefficient of the association between a variable and the hazard function should not vary over time
 
-* Visually, curves should be proportional and can not cross. ! Still needs proper testing !
+* Visually, curves should be proportional and can not cross
+
+* ! Still needs proper testing !
 
 * We can either stratify on the variable that does not respect the assumption
 
@@ -465,19 +467,19 @@ summary(model_full)
 
 * This implies that there is no interaction between `species` and `name` (i.e. the HR for cactus compared to basil is the same whether the plant has a name or not)
 
-* We could also add an interaction term in the form of name*species if we suspected there was an interaction between those variables
+* We could also add an interaction term in the form of `name*species` if we suspected there was an interaction between those variables
 
 ---
 
 ### Takeaways
 
-* Survival analysis is a powerful tool for analyzing the association of variables with a survivor function (a therefore a probability of survival)
+* Survival analysis is a powerful tool for analyzing the association of variables with a probability of survival
 
 * Cox model allows to control for adjustment variables and gives valuable Hazard Ratios as output
 
 * Your data has to respect the assumption of proportional hazards, otherwise it invalidates the entire model
 
-* This means that the coefficient of the association between a variable and the survivor function should not vary over time
+* This means that the coefficient of the association between a variable and the hazard function should not vary over time
 
 ---
 
@@ -495,11 +497,10 @@ summary(model_full)
 
 ## Further reading & References
 * [Donnenfeld et al., *Prospective association between dietary folate intake and skin cancer risk: Results from the Supplémentation en Vitamines et Minéraux Antioxydants cohort*](https://www.researchgate.net/publication/279990457_Prospective_association_between_dietary_folate_intake_and_skin_cancer_risk_Results_from_the_Supplementation_en_Vitamines_et_Mineraux_Antioxydants_cohort)
-* [CRAN, *Plotting with survival package*](https://cran.r-project.org/web/packages/ggfortify/vignettes/plot_surv.html)
+* [Kosinski, *Survival plots have never been so informative*](https://cran.r-project.org/web/packages/survminer/vignettes/Informative_Survival_Plots.html)
 * [LaMorte, *Comparing survival curves: The log-rank test*](http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/BS704_Survival/BS704_Survival5.html)
 * [Walters, *What is a Cox model?*](http://www.bandolier.org.uk/painres/download/whatis/COX_MODEL.pdf)
-
-
+* [Stevenson, *An introduction to survival analysis*](http://s3.amazonaws.com/zanran_storage/epicentre.massey.ac.nz/ContentPages/111789122.pdf)
 
 ---
 
