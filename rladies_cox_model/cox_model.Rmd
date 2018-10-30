@@ -459,7 +459,7 @@ summary(model_full)
 
 ### Modelling: Adjustement
 
-**Those coefficients are not interpretable... but if they were:**
+**Those coefficients are not interpretable (the model does not respect the PH assumption)... but if they were:**
 
 * A cactus has, at any point in time, 36.5% chances less of dying than a basil, *other variables held constant*
 
