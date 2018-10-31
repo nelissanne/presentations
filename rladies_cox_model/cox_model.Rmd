@@ -238,7 +238,7 @@ d <- data.frame(time = fit$time,
                   n.at.risk = fit$n.risk,
                   n.event = fit$n.event,
                   n.censor = fit$n.censor,
-                  int.risk = round(fit$n.event/fit$n.risk, 4),
+                  int.hazard = round(fit$n.event/fit$n.risk, 4),
                   int.surv = round(1-(fit$n.event/fit$n.risk), 4)
                   )
 head(d, 10)
@@ -265,7 +265,7 @@ d <- data.frame(time = fit$time,
                   n.at.risk = fit$n.risk,
                   n.event = fit$n.event,
                   n.censor = fit$n.censor,
-                  int.risk = round(fit$n.event/fit$n.risk, 4),
+                  int.hazard = round(fit$n.event/fit$n.risk, 4),
                   int.surv = round(1-(fit$n.event/fit$n.risk), 4),
                   surv = round(fit$surv, 4),
                   upper = round(fit$upper, 4),
